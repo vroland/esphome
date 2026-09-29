@@ -69,18 +69,22 @@ matrix_keypad:
 poly_synth:
   id: keyboard_synth
   output_speaker: synth_mixer_input
-  keypad: keyboard
+  keypad:
+    id: keyboard
+    keys: "0123456789ABCDEFGHIJKLMNOPQ"
+    base_note: 69
+    velocity: 1.0
   sample_rate: 48000
   polyphony: 12
-  gain: 0.30
+  gain: 0.25
   oscillator:
     waveform: polyblep_saw
     detune_cents: 7
   amp_envelope:
-    attack: 5ms
-    decay: 250ms
-    sustain: 55%
-    release: 300ms
+    attack: 1ms
+    decay: 125ms
+    sustain: 65%
+    release: 35ms
   filter:
     type: low_pass
     cutoff: 1500Hz

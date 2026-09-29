@@ -15,14 +15,40 @@ accepts `waveform: polyblep_saw` and `detune_cents` (default +7). Optional
 `filter_envelope` also accepts a frequency `amount`. `filter` accepts
 `type: low_pass`, `cutoff`, `resonance`. See the example for defaults.
 
-The optional `keypad: keyboard_id` registers a separate
-`MatrixKeypadListener` adapter. Keys `0`–`9` / `A`–`Q` map to MIDI 69–95;
-other codes are ignored. This requires the **forked diode matrix keypad**
-support for simultaneous independent press/release events. When using a
-different ESPHome installation with `external_components`, import both
-`poly_synth` and the forked `matrix_keypad` from the same source if you set
-`keypad:`. Without `keypad`, the synth has no C++ dependency on matrix_keypad;
-use `id(keyboard_synth).note_on(midi_note, velocity)`, `.note_off(midi_note)`,
+The optional `keypad:` block registers a separate `MatrixKeypadListener`
+adapter. For this keyboard, configure:
+
+```yaml
+poly_synth:
+  id: keyboard_synth
+  output_speaker: synth_mixer_input
+  keypad:
+    id: keyboard
+    keys: "0123456789ABCDEFGHIJKLMNOPQ"
+    base_note: 69
+    velocity: 1.0
+  amp_envelope:
+    attack: 1ms
+    decay: 125ms
+    sustain: 65%
+    release: 35ms
+```
+
+The **matrix_keypad** `keys:` string assigns key codes to physical matrix
+positions (including dummy `R`–`V`). The **synth keypad** `keys:` string puts
+only playable key codes in *chromatic order*. `base_note` is the MIDI note of
+the first logical key: here `0` maps to 69, `A` to 79, and `Q` to 95. Unknown
+matrix key codes are ignored. The key list must contain unique ASCII characters
+and fit within MIDI notes 0–127. Velocity defaults to 1.0; `base_note` defaults
+to 69. Key-up sends only the matching note-off, leaving other held keys playing.
+No per-note binary sensors or release automation are needed.
+
+Simultaneous independent press/release events require the **forked diode matrix
+keypad**. When using a different ESPHome installation with
+`external_components`, import both `poly_synth` and the forked `matrix_keypad`
+from the same source if you set `keypad:`. Without `keypad`, the synth has no
+C++ dependency on matrix_keypad. Use
+`id(keyboard_synth).note_on(midi_note, velocity)`, `.note_off(midi_note)`,
 `.all_notes_off()` or the `poly_synth.note_on`, `.note_off`,
 `.all_notes_off` automation actions. DSP never depends on the keyboard.
 
@@ -71,6 +97,9 @@ g++ -std=c++17 -I. tests/unit_tests/poly_synth/test_voice_state.cpp -o /tmp/poly
 /tmp/poly_synth_voice_test
 g++ -std=c++17 -I. tests/unit_tests/poly_synth/test_dsp.cpp -o /tmp/poly_synth_dsp_test
 /tmp/poly_synth_dsp_test
+g++ -std=c++17 -I. tests/unit_tests/poly_synth/test_keypad_mapping.cpp -o /tmp/poly_synth_keypad_test
+/tmp/poly_synth_keypad_test
+python -m pytest tests/unit_tests/poly_synth/test_keypad_config.py
 ```
 
 Compile the example with `python -m esphome compile poly_synth_example.yaml`.
