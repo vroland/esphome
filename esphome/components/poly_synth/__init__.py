@@ -92,6 +92,7 @@ async def to_code(config):
     e = config[CONF_FILTER_ENVELOPE]
     cg.add(var.set_filter_envelope(e[CONF_AMOUNT], e[CONF_ATTACK].total_milliseconds / 1000, e[CONF_DECAY].total_milliseconds / 1000, e[CONF_SUSTAIN], e[CONF_RELEASE].total_milliseconds / 1000))
     if CONF_KEYPAD in config:
+        cg.add_define("USE_POLY_SYNTH_KEYPAD")
         keypad = await cg.get_variable(config[CONF_KEYPAD])
         bridge = cg.new_Pvariable(ID(f"{config[CONF_ID]}_keypad_adapter", type=MatrixKeypadAdapter), var)
         cg.add(keypad.register_listener(bridge))

@@ -18,7 +18,10 @@ accepts `waveform: polyblep_saw` and `detune_cents` (default +7). Optional
 The optional `keypad: keyboard_id` registers a separate
 `MatrixKeypadListener` adapter. Keys `0`–`9` / `A`–`Q` map to MIDI 69–95;
 other codes are ignored. This requires the **forked diode matrix keypad**
-support for simultaneous independent press/release events. Without `keypad`,
+support for simultaneous independent press/release events. When using a
+different ESPHome installation with `external_components`, import both
+`poly_synth` and the forked `matrix_keypad` from the same source if you set
+`keypad:`. Without `keypad`, the synth has no C++ dependency on matrix_keypad;
 use `id(keyboard_synth).note_on(midi_note, velocity)`, `.note_off(midi_note)`,
 `.all_notes_off()` or the `poly_synth.note_on`, `.note_off`,
 `.all_notes_off` automation actions. DSP never depends on the keyboard.

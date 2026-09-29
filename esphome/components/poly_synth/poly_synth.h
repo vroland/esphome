@@ -69,7 +69,7 @@ class PolySynth : public Component {
   uint32_t last_log_{0};
 };
 }  // namespace esphome::poly_synth
-#ifdef USE_MATRIX_KEYPAD
+#ifdef USE_POLY_SYNTH_KEYPAD
 #include "matrix_keypad_adapter.h"
 #endif
 #include "automation.h"

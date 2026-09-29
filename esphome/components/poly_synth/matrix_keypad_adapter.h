@@ -1,4 +1,5 @@
 #pragma once
+#ifdef USE_POLY_SYNTH_KEYPAD
 #include "poly_synth.h"
 #include "esphome/components/matrix_keypad/matrix_keypad.h"
 namespace esphome::poly_synth {
@@ -16,3 +17,4 @@ class MatrixKeypadAdapter : public matrix_keypad::MatrixKeypadListener {
   PolySynth *synth_;
 };
 }  // namespace esphome::poly_synth
+#endif  // USE_POLY_SYNTH_KEYPAD

@@ -1,0 +1,43 @@
+esphome:
+  name: poly-synth-direct
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+external_components:
+  - source:
+      type: local
+      path: esphome/components
+    components: [poly_synth]
+
+i2s_audio:
+  id: dac_bus
+  i2s_bclk_pin: GPIO15
+  i2s_lrclk_pin: GPIO23
+
+speaker:
+  - platform: i2s_audio
+    id: dac_speaker
+    i2s_audio_id: dac_bus
+    dac_type: external
+    i2s_dout_pin: GPIO22
+    channel: stereo
+    sample_rate: 48000
+    bits_per_sample: 16bit
+
+poly_synth:
+  id: keyboard_synth
+  output_speaker: dac_speaker
+
+script:
+  - id: play_test_note
+    then:
+      - poly_synth.note_on:
+          id: keyboard_synth
+          note: 69
+      - delay: 1s
+      - poly_synth.note_off:
+          id: keyboard_synth
+          note: 69

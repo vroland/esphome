@@ -15,7 +15,7 @@ external_components:
   - source:
       type: local
       path: esphome/components
-    components: [poly_synth]
+    components: [poly_synth, matrix_keypad]
 
 i2s_audio:
   id: dac_bus
