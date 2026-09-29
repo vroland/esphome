@@ -72,4 +72,5 @@ class PolySynth : public Component {
 #ifdef USE_MATRIX_KEYPAD
 #include "matrix_keypad_adapter.h"
 #endif
+#include "automation.h"
 #endif

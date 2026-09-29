@@ -13,6 +13,9 @@ CODEOWNERS = ["@vroland"]
 ns = cg.esphome_ns.namespace("poly_synth")
 PolySynth = ns.class_("PolySynth", cg.Component)
 MatrixKeypadAdapter = ns.class_("MatrixKeypadAdapter")
+NoteOnAction = ns.class_("NoteOnAction", automation.Action)
+NoteOffAction = ns.class_("NoteOffAction", automation.Action)
+AllNotesOffAction = ns.class_("AllNotesOffAction", automation.Action)
 
 CONF_POLYPHONY = "polyphony"
 CONF_GAIN = "gain"
@@ -94,16 +97,47 @@ async def to_code(config):
         cg.add(keypad.register_listener(bridge))
 
 
-NOTE_SCHEMA = cv.Schema({cv.Required(CONF_ID): cv.use_id(PolySynth), cv.Required("note"): cv.templatable(cv.int_range(min=0, max=127))})
+NOTE_SCHEMA = cv.Schema(
+    {
+        cv.Required(CONF_ID): cv.use_id(PolySynth),
+        cv.Required("note"): cv.templatable(cv.int_range(min=0, max=127)),
+    }
+)
 
-automation.register_apply_action(
+
+@automation.register_action(
     "poly_synth.note_on",
+    NoteOnAction,
     NOTE_SCHEMA.extend({cv.Optional("velocity", default=1.0): cv.templatable(cv.float_range(min=0, max=1))}),
-    automation.ApplyCall("note_on({}, {})", (("note", cg.uint8), ("velocity", cg.float_))),
+    synchronous=True,
 )
-automation.register_apply_action(
-    "poly_synth.note_off", NOTE_SCHEMA, automation.ApplyCall("note_off({})", (("note", cg.uint8),))
+async def note_on_action_to_code(config, action_id, template_arg, args):
+    synth = await cg.get_variable(config[CONF_ID])
+    var = cg.new_Pvariable(action_id, template_arg, synth)
+    note = await cg.templatable(config["note"], args, cg.uint8)
+    velocity = await cg.templatable(config["velocity"], args, cg.float_)
+    cg.add(var.set_note(note))
+    cg.add(var.set_velocity(velocity))
+    return var
+
+
+@automation.register_action(
+    "poly_synth.note_off", NoteOffAction, NOTE_SCHEMA, synchronous=True
 )
-automation.register_apply_action(
-    "poly_synth.all_notes_off", cv.Schema({cv.Required(CONF_ID): cv.use_id(PolySynth)}), automation.ApplyCall("all_notes_off()")
+async def note_off_action_to_code(config, action_id, template_arg, args):
+    synth = await cg.get_variable(config[CONF_ID])
+    var = cg.new_Pvariable(action_id, template_arg, synth)
+    note = await cg.templatable(config["note"], args, cg.uint8)
+    cg.add(var.set_note(note))
+    return var
+
+
+@automation.register_action(
+    "poly_synth.all_notes_off",
+    AllNotesOffAction,
+    cv.Schema({cv.Required(CONF_ID): cv.use_id(PolySynth)}),
+    synchronous=True,
 )
+async def all_notes_off_action_to_code(config, action_id, template_arg, args):
+    synth = await cg.get_variable(config[CONF_ID])
+    return cg.new_Pvariable(action_id, template_arg, synth)
