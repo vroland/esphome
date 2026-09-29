@@ -1,0 +1,108 @@
+esphome:
+  name: keyboard-synth
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+logger:
+  level: INFO
+
+# When running this example from the fork's root. For an external checkout,
+# change path to the checkout's esphome/components directory.
+external_components:
+  - source:
+      type: local
+      path: esphome/components
+    components: [poly_synth]
+
+i2s_audio:
+  id: dac_bus
+  i2s_bclk_pin: GPIO15
+  i2s_lrclk_pin: GPIO23
+
+speaker:
+  - platform: i2s_audio
+    id: dac_speaker
+    i2s_audio_id: dac_bus
+    dac_type: external
+    i2s_dout_pin: GPIO22
+    channel: stereo
+    sample_rate: 48000
+    bits_per_sample: 16bit
+    buffer_duration: 40ms
+
+  - platform: mixer
+    id: audio_mixer
+    output_speaker: dac_speaker
+    num_channels: 2
+    bits_per_sample: 16
+    source_speakers:
+      - id: synth_mixer_input
+        buffer_duration: 20ms
+        timeout: 300ms
+      - id: media_mixer_input
+        buffer_duration: 200ms
+        timeout: 500ms
+
+matrix_keypad:
+  id: keyboard
+  rows:
+    - pin: GPIO16
+    - pin: GPIO17
+    - pin: GPIO18
+    - pin: GPIO19
+  columns:
+    - pin: GPIO13
+    - pin: GPIO12
+    - pin: GPIO27
+    - pin: GPIO26
+    - pin: GPIO25
+    - pin: GPIO33
+    - pin: GPIO32
+    - pin: GPIO14
+  keys: "DB64RS9175A8C203IPGLTUVNEMFHQJOK"
+  has_diodes: true
+  debounce_time: 5
+
+poly_synth:
+  id: keyboard_synth
+  output_speaker: synth_mixer_input
+  keypad: keyboard
+  sample_rate: 48000
+  polyphony: 12
+  gain: 0.30
+  oscillator:
+    waveform: polyblep_saw
+    detune_cents: 7
+  amp_envelope:
+    attack: 5ms
+    decay: 250ms
+    sustain: 55%
+    release: 300ms
+  filter:
+    type: low_pass
+    cutoff: 1500Hz
+    resonance: 0.15
+  filter_envelope:
+    amount: 2500Hz
+    attack: 2ms
+    decay: 300ms
+    sustain: 0%
+    release: 200ms
+
+# Optional automation action smoke test; call from an API/button later.
+script:
+  - id: play_test_note
+    then:
+      - poly_synth.note_on:
+          id: keyboard_synth
+          note: 69
+          velocity: 0.7
+      - delay: 1s
+      - poly_synth.note_off:
+          id: keyboard_synth
+          note: 69
+      - poly_synth.all_notes_off:
+          id: keyboard_synth
