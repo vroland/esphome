@@ -13,7 +13,10 @@ class Adsr {
   void Retrigger(bool hard) { if (hard) level_ = 0; stage_ = ATTACK; }
   float Process(bool gate) {
     if (gate && !gate_) stage_ = ATTACK;
-    if (!gate && gate_) stage_ = RELEASE;
+    // Retrigger() can run without a subsequent Process(true): both note events
+    // may arrive before rendering starts. A low gate must release any active
+    // attack/decay, even when the previous sampled gate was already low.
+    if (!gate && (stage_ == ATTACK || stage_ == DECAY)) stage_ = RELEASE;
     gate_ = gate;
     if (stage_ == ATTACK) {
       level_ += attack_ * (1.01f - level_);

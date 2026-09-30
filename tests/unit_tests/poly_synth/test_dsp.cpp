@@ -30,4 +30,27 @@ int main() {
   assert(envelope.IsRunning());
   for (int i = 0; i < 48000; i++) envelope.Process(false);
   assert(!envelope.IsRunning());
+
+  // A tap can be fully queued before rendering starts (speaker startup, or
+  // note-on and note-off in one block). Retrigger must not sustain with gate=false.
+  envelope.Retrigger(true);
+  for (int i = 0; i < 48000; i++) envelope.Process(false);
+  assert(!envelope.IsRunning());
+  assert(envelope.Process(false) == 0.0f);
+
+  // Re-press during a release, then release again before any held sample.
+  for (int i = 0; i < 48000; i++) envelope.Process(true);
+  for (int i = 0; i < 128; i++) envelope.Process(false);
+  envelope.Retrigger(false);
+  for (int i = 0; i < 48000; i++) envelope.Process(false);
+  assert(!envelope.IsRunning());
+  assert(envelope.Process(false) == 0.0f);
+
+  // Normal held notes and release still work after those rapid taps.
+  envelope.Retrigger(true);
+  for (int i = 0; i < 48000; i++) envelope.Process(true);
+  assert(envelope.IsRunning());
+  assert(std::fabs(envelope.Process(true) - 0.55f) < 0.001f);
+  for (int i = 0; i < 48000; i++) envelope.Process(false);
+  assert(!envelope.IsRunning());
 }
